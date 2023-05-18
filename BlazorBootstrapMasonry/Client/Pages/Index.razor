@@ -1,9 +1,78 @@
 ﻿@page "/"
+@using System.Drawing;
 
-<PageTitle>Index</PageTitle>
+@inject IMasonryService Masonry
 
-<h1>Hello, world!</h1>
+<PageTitle>Masonry test</PageTitle>
 
-Welcome to your new app.
+<div class="container-fluid mt-2 p-1">
+    <button type="button" class="btn btn-secondary mb-1" @onclick="FetchDatas">
+        Refresh
+    </button>
+    <div class="row">
+        <div class="col">
+            <div class="alert alert-info my-1" role="alert">
+                Normal Grid Layout
+            </div>
+            <div class="row border mx-1">
+                @foreach (var item in Items)
+                {
+                    <div class="col-sm-6 col-lg-4 col-xl-3 col-xxl-2 p-1" @key="item">
+                        <div class="card" style="@($"background-color:{item.BackColor}")">
+                            <span style="@($"font-size:{item.TextSize}em")">@item.Text</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col">
+            <div class="alert alert-info my-1" role="alert">
+                Masonry Layout
+            </div>
+            <div class="row border mx-1 masonryRow">
+                @foreach (var item in Items)
+                {
+                    <div class="col-sm-6 col-lg-4 col-xl-3 col-xxl-2 p-1" @key="item">
+                        <div class="card" style="@($"background-color:{item.BackColor}")">
+                            <span style="@($"font-size:{item.TextSize}em")">@item.Text</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+
+
+@code {
+    class MasonryItem
+    {
+        public string Text { get; set; }
+        public double TextSize { get; set; }
+        public string BackColor { get; set; }
+    }
+    List<MasonryItem> Items = new();
+    protected override async Task OnInitializedAsync()
+    {
+        await FetchDatas();
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await Masonry.Init(".masonryRow", ".col-sm-6");
+    }
+
+    async Task FetchDatas()
+    {
+        Items = await Task.FromResult(Enumerable.Range(1, 20).Select(idx => new MasonryItem()
+            {
+                Text = $"{idx}",
+                TextSize = Random.Shared.Next(3, 7),
+                BackColor = GetRandomColor()
+            }).ToList());
+    }
+    static string GetRandomColor()
+    {
+        return ColorTranslator.ToHtml(Color.FromArgb(Random.Shared.Next(256), Random.Shared.Next(256), Random.Shared.Next(256)));
+    }
+}
